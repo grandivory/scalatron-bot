@@ -3,7 +3,7 @@ package scalatron.botwar.botPlugin
 import com.grandivory.scalatron.bot.Bot
 import com.grandivory.scalatron.bot.commands._
 
-object ControlFunctionFactory {
+class ControlFunctionFactory {
 
   def create: String => String = { input: String =>
     // Parse the input string into a ControlOpCode
