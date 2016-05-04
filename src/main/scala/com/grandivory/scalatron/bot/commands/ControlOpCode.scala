@@ -1,6 +1,6 @@
 package com.grandivory.scalatron.bot.commands
 
-import com.grandivory.scalatron.bot.util.{BotView, Direction}
+import com.grandivory.scalatron.bot.util.{Direction, View}
 
 /**
   * This is a control code that will be sent to the bot when it needs to do something
@@ -44,7 +44,7 @@ case class Goodbye(energy: Int) extends ControlOpCode
 case class React(generation: Int,
                  name: String,
                  currentRound: Int,
-                 view: BotView,
+                 view: View,
                  currentEnergy: Int,
                  masterDirection: Option[Direction],
                  failedMoveDirection: Option[Direction],

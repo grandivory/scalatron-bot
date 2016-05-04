@@ -20,6 +20,7 @@
       <excludeFolder url="file://$MODULE_DIR$/../../target" />
       <excludeFolder url="file://$MODULE_DIR$/../../target/resolution-cache" />
       <excludeFolder url="file://$MODULE_DIR$/../../target/streams" />
+      <excludeFolder url="file://$MODULE_DIR$/../../target/test-reports" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -28,5 +29,9 @@
     <orderEntry type="library" name="SBT: org.spire-math:spire-macros_2.11:0.11.0:jar" level="project" />
     <orderEntry type="library" name="SBT: org.spire-math:spire_2.11:0.11.0:jar" level="project" />
     <orderEntry type="library" name="SBT: org.typelevel:machinist_2.11:0.4.1:jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="SBT: org.scala-lang.modules:scala-parser-combinators_2.11:1.0.4:jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="SBT: org.scala-lang.modules:scala-xml_2.11:1.0.2:jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="SBT: org.scalactic:scalactic_2.11:3.0.0-M15:jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="SBT: org.scalatest:scalatest_2.11:3.0.0-M15:jar" level="project" />
   </component>
 </module>

@@ -101,4 +101,6 @@ case class Log(text: String)
   *
   * @param commands A set of all commands to execute
   */
-case class MultiCommand private(commands: Set[BotCommand]) extends BotCommand
+case class MultiCommand private(commands: Set[BotCommand]) extends BotCommand {
+  override def toString: String = commands.map(_.toString).mkString("|")
+}

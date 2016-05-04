@@ -1,6 +1,6 @@
 package com.grandivory.scalatron.bot
 
-import com.grandivory.scalatron.bot.commands.{BotCommand, ControlOpCode}
+import com.grandivory.scalatron.bot.commands._
 
 object Bot {
   /**
@@ -8,5 +8,7 @@ object Bot {
     * opcode that represents what it should react to, and it must issue a command to perform. The main bot can
     * only react every OTHER round, whereas slave bots can react every round
     */
-  def performAction(controlCode: ControlOpCode): BotCommand = ???
+  def performAction(controlCode: ControlOpCode): BotCommand = {
+    Status("FOO!")
+  }
 }
