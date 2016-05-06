@@ -109,5 +109,11 @@ class ControlFunctionFactoryTest extends FunSpec with PrivateMethodTester {
       assertResult("Set(foo=bar)")(oneProperty)
       assertResult("Set(foo=bar,baz=qux)")(multipleProperties)
     }
+
+    it("can send multiple commands") {
+      def moveAndSay = serializeBotAction(Move(Direction.Up) + Say("foobar!"))
+
+      assertResult("Move(direction=0:-1)|Say(text=foobar!)")(moveAndSay)
+    }
   }
 }

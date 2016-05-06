@@ -8,13 +8,13 @@ import com.grandivory.scalatron.bot.util.{Color, Direction, RelativePosition}
 trait BotCommand extends Product with Serializable {
   // TODO: Handle command collision better
   def +(command: BotCommand): BotCommand = this match {
-    case MultiCommand(commands) => MultiCommand(commands + command)
-    case _ => MultiCommand(Set(command + this))
+    case MultiCommand(commands) => MultiCommand(commands :+ command)
+    case _ => MultiCommand(List(this, command))
   }
 
-  def ++(commands: Set[BotCommand]): BotCommand = this match {
-    case MultiCommand(oldCommands: Set[BotCommand]) => MultiCommand(commands ++ oldCommands)
-    case _ => MultiCommand(commands + this)
+  def ++(commands: List[BotCommand]): BotCommand = this match {
+    case MultiCommand(oldCommands: List[BotCommand]) => MultiCommand(oldCommands ::: commands)
+    case _ => MultiCommand(this :: commands)
   }
 
   override def toString: String = {
@@ -126,6 +126,6 @@ case class Log(text: String) extends BotCommand
   *
   * @param commands A set of all commands to execute
   */
-case class MultiCommand private(commands: Set[BotCommand]) extends BotCommand {
-  override def toString: String = commands.map(_.toString).mkString("|")
+case class MultiCommand private(commands: List[BotCommand]) extends BotCommand {
+  override def toString: String = commands.mkString("|")
 }
