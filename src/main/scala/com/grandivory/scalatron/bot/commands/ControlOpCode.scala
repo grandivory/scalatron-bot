@@ -46,8 +46,8 @@ case class React(generation: Int,
                  currentRound: Int,
                  view: View,
                  currentEnergy: Int,
-                 masterDirection: Option[Direction],
-                 failedMoveDirection: Option[Direction],
+                 masterDirection: Option[Direction] = None,
+                 failedMoveDirection: Option[Direction] = None,
                  numLivingSlaves: Int,
-                 extraProperties: Option[Map[String, String]])
+                 extraProperties: Option[Map[String, String]] = None)
   extends ControlOpCode

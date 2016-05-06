@@ -4,16 +4,17 @@ import com.grandivory.scalatron.bot.commands._
 import com.grandivory.scalatron.bot.util._
 import RelativePositionConversions._
 import PositionVectorConversions._
+import com.grandivory.scalatron.bot.util.Direction.DownRight
 import org.scalatest.{FunSpec, PrivateMethodTester}
 
 class ControlFunctionFactoryTest extends FunSpec with PrivateMethodTester {
-  ignore("parseControlCode") {
+  describe("parseControlCode") {
     val privateMethod = PrivateMethod[ControlOpCode]('parseControlCode)
 
     def parseControlCode(input: String): ControlOpCode = new ControlFunctionFactory invokePrivate privateMethod(input)
 
     it("successfully parses a minimal welcome op code") {
-      val result = parseControlCode("Welcome(name=Foo,apocalypse=5000,round=1,maxslaves=10")
+      val result = parseControlCode("Welcome(name=Foo,apocalypse=5000,round=1,maxslaves=10)")
 
       assertResult(Welcome(name = "Foo", numSimulationRounds = 5000, currentRound = 1, maxSlaves = 10))(result)
     }
@@ -25,14 +26,41 @@ class ControlFunctionFactoryTest extends FunSpec with PrivateMethodTester {
     }
 
     it("successfully parses a a minimal react op code") {
-      val result = parseControlCode("React(generation=0,name=MattBot,time=100,view=?????WWWWWW_M_WSmsPpBbBbB,energy=100)")
+      val result = parseControlCode(
+        "React(generation=0,name=foobar,time=100,view=?????WWWWWW_M_WSmsPpBbBbB,energy=100,slaves=0)"
+      )
 
-//      val expectedView = ???
-
-//      assertResult(React(generation = 0, name = "MattBot", currentRound = 100, view = ???, currentEnergy = 100))(result)
+      assertResult(
+        React(
+          generation = 0,
+          name = "foobar",
+          currentRound = 100,
+          view = View("?????WWWWWW_M_WSmsPpBbBbB"),
+          currentEnergy = 100,
+          numLivingSlaves = 0
+        )
+      )(result)
     }
 
-    it("can handle extra parameters") {}
+    it("can handle extra parameters") {
+      val result = parseControlCode(
+        "React(generation=1,name=foobar,time=4,view=M,energy=100,master=1:1,collision=1:1,slaves=2,foo=bar)"
+      )
+
+      assertResult(
+        React(
+          generation = 1,
+          name = "foobar",
+          currentRound = 4,
+          view = View("M"),
+          currentEnergy = 100,
+          masterDirection = Some(DownRight),
+          failedMoveDirection = Some(DownRight),
+          numLivingSlaves = 2,
+          extraProperties = Some(Map("foo" -> "bar"))
+        )
+      )(result)
+    }
   }
 
   describe("serializeBotAction") {
