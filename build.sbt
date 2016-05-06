@@ -8,7 +8,6 @@ lazy val scalatronBot = (project in file(".")).settings(
   version := "1.0",
   scalaVersion := "2.11.8",
   libraryDependencies ++= List(
-    "org.spire-math" %% "spire" % "0.11.0",
     "org.scalatest" %% "scalatest" % "3.0.0-M15" % "test"
   ),
   scalacOptions += "-feature",
