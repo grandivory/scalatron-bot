@@ -1,6 +1,6 @@
 package com.grandivory.scalatron.bot.util
 
-sealed trait Direction {
+sealed trait Direction extends Product with Serializable {
   import Direction._
 
   override def toString: String = directionStringMap(this)

@@ -5,7 +5,7 @@ import com.grandivory.scalatron.bot.util.{Direction, View}
 /**
   * This is a control code that will be sent to the bot when it needs to do something
   */
-sealed trait ControlOpCode
+sealed trait ControlOpCode extends Product with Serializable
 
 /**
   * Code sent when a bot is first generated. For main bots, this will be sent in the first round. For slaves, this will

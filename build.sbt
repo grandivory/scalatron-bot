@@ -8,7 +8,8 @@ lazy val scalatronBot = (project in file(".")).settings(
   version := "1.0",
   scalaVersion := "2.11.8",
   libraryDependencies ++= List(
-    "org.scalatest" %% "scalatest" % "3.0.0-M15" % "test"
+    "org.scalatest" %% "scalatest" % "3.0.0-M15" % "test",
+    "org.scalacheck" %% "scalacheck" % "1.12.5" % "test"
   ),
   scalacOptions += "-feature",
   botDirectory := file("/workspace/scalatron/bots"),

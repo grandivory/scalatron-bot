@@ -31,6 +31,8 @@ class View private(val distance: Int, val objectsInView: Map[RelativePosition, V
       that.objectsInView == this.objectsInView
     case _ => false
   }
+
+  override def toString: String = s"View@$hashCode"
 }
 
 object View {
