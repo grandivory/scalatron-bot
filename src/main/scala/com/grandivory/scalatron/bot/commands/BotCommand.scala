@@ -41,13 +41,6 @@ trait BotCommand extends Product with Serializable {
 }
 
 /**
-  * Tell the bot to do nothing
-  */
-case object Noop extends BotCommand {
-  override def toString: String = ""
-}
-
-/**
   * Bots can move exactly one space in any direction
   *
   * @param direction The direction for the bot to move in

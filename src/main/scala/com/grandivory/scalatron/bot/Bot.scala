@@ -8,7 +8,7 @@ object Bot {
     * opcode that represents what it should react to, and it must issue a command to perform. The main bot can
     * only react every OTHER round, whereas slave bots can react every round
     */
-  def performAction(controlCode: ControlOpCode): BotCommand = {
-    Status("FOO!")
+  def performAction(controlCode: Option[ControlOpCode]): Option[BotCommand] = {
+    Some(Status("FOO!"))
   }
 }

@@ -17,7 +17,7 @@ class ControlFunctionFactory {
     *
     * @param input The string input to parse over
     */
-  private def parseControlCode(input: String): ControlOpCode = {
+  private def parseControlCode(input: String): Option[ControlOpCode] = {
     val (opCode: String, argList: String) = input.span(_ != '(')
 
     val arguments: Map[String, String] = argList.stripPrefix("(").stripSuffix(")").split(',').flatMap { argument =>
@@ -28,34 +28,54 @@ class ControlFunctionFactory {
     }.toMap
 
     opCode match {
-      case "Welcome" => Welcome(
-        name = arguments("name"),
-        numSimulationRounds = arguments("apocalypse").toInt,
-        currentRound = arguments("round").toInt,
-        maxSlaves = arguments("maxslaves").toInt
-      )
-      case "Goodbye" => Goodbye(
-        energy = arguments("energy").toInt
-      )
+      case "Welcome" =>
+        for {
+          name <- arguments.get("name")
+          numSimulationRounds <- arguments.get("apocalypse")
+          currentRound <- arguments.get("round")
+          maxSlaves <- arguments.get("maxslaves")
+        } yield {
+          Welcome(
+            name = name,
+            numSimulationRounds = numSimulationRounds.toInt,
+            currentRound = currentRound.toInt,
+            maxSlaves = maxSlaves.toInt
+          )
+        }
+      case "Goodbye" =>
+        for {
+          energy <- arguments.get("energy")
+        } yield {
+          Goodbye(energy = energy.toInt)
+        }
       case "React" =>
         val extraArguments: Map[String, String] = arguments.filterKeys { key =>
-          val knownArguments = Set("generation", "name", "time", "view", "energy", "master", "collision", "slaves")
-
-          !knownArguments.contains(key)
+          !Set("generation", "name", "time", "view", "energy", "master", "collision", "slaves").contains(key)
         }
-        React(
-          generation = arguments("generation").toInt,
-          name = arguments("name"),
-          currentRound = arguments("time").toInt,
-          view = View(arguments("view")),
-          currentEnergy = arguments("energy").toInt,
-          masterDirection = arguments.get("master").map(Direction.parse),
-          failedMoveDirection = arguments.get("collision").map(Direction.parse),
-          numLivingSlaves = arguments("slaves").toInt,
+        for {
+          generation <- arguments.get("generation")
+          name <- arguments.get("name")
+          currentRound <- arguments.get("time")
+          view <- arguments.get("view")
+          currentEnergy <- arguments.get("energy")
+          numLivingSlaves <- arguments.get("slaves")
           extraProperties = if (extraArguments.isEmpty) None else Some(extraArguments)
-        )
+        } yield {
+          React(
+            generation = generation.toInt,
+            name = name,
+            currentRound = currentRound.toInt,
+            view = View(view),
+            currentEnergy = currentEnergy.toInt,
+            masterDirection = arguments.get("master").map(Direction.parse),
+            failedMoveDirection = arguments.get("collision").map(Direction.parse),
+            numLivingSlaves = numLivingSlaves.toInt,
+            extraProperties = extraProperties
+          )
+        }
+      case _ => None
     }
   }
 
-  private def serializeBotAction(botCommand: BotCommand): String = botCommand.toString
+  private def serializeBotAction(botCommand: Option[BotCommand]): String = botCommand.map(_.toString).getOrElse("")
 }
