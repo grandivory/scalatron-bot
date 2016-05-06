@@ -66,7 +66,7 @@ When a mini bot explodes, it can determine the explosion radius.
 Exploding will use up all of the energy that a mini bot has. The
 damage that it deals to other entities is calculated as follows:
 
-energyPerArea = energy / PI*radius²
+energyPerArea = energy / PI***radius²
 damage = (energyPerArea*200)*(1-(distance from center / radius))
 
 The damage will then be capped based on how much energy the
