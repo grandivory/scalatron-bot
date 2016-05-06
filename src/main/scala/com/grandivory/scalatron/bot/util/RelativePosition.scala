@@ -1,13 +1,17 @@
 package com.grandivory.scalatron.bot.util
 
+import PositionVectorConversions._
+
 /**
   * Represents a cell position relative to the bot
-  * @param x
-  * @param y
+  *
+  * @param x The left/right position
+  * @param y The up/down position
   */
-case class RelativePosition(x: Int = 0, y: Int = 0) extends Ordered[RelativePosition] {
+case class RelativePosition(x: LeftRight = 0.left, y: UpDown = 0.up) extends Ordered[RelativePosition] {
+  import Math._
 
-  def distance: Double = Math.sqrt(x*x + y*y)
+  def distance: Int = max(x.distance, y.distance) // Number of moves it would take to get to that spot
 
   override def compare(that: RelativePosition): Int = {
     if (distance < that.distance) -1
@@ -17,3 +21,5 @@ case class RelativePosition(x: Int = 0, y: Int = 0) extends Ordered[RelativePosi
 
   override def toString: String = s"$x:$y"
 }
+
+object Origin extends RelativePosition(0.left, 0.up)

@@ -1,24 +1,27 @@
 package com.grandivory.scalatron.bot.util
 
+import PositionVectorConversions._
+
 /**
   * A representation of everything that a bot can see
   */
-trait View extends Equals {
-  def distance: Int
-  def objectsInView: Map[RelativePosition, ViewObject]
+class View private(val distance: Int, val objectsInView: Map[RelativePosition, ViewObject]) extends Equals {
+  def canSeeSnorgs: Boolean = objectsInView.values.exists(Snorg == _)
+  def canSeeFluppets: Boolean = objectsInView.values.exists(Fluppet == _)
+  def canSeeZugars: Boolean = objectsInView.values.exists(Zugar == _)
+  def canSeeToxifera: Boolean = objectsInView.values.exists(Toxifera == _)
+  def nearestGameObject: Option[(RelativePosition, GameObject)] = {
+    // The scala compiler can't seem to figure out the type of this simple partial function unless I explicitly break
+    // it out and explicitly assign it.
+    val conversionMethod: PartialFunction[(RelativePosition, ViewObject), (RelativePosition, GameObject)] = {
+      case entry@(_, _:GameObject) => entry.asInstanceOf[(RelativePosition, GameObject)]
+    }
 
-  val canSeeSnorgs: Boolean = objectsInView.values.exists(Snorg == _)
-  val canSeeFluppets: Boolean = objectsInView.values.exists(Fluppet == _)
-  val canSeeZugars: Boolean = objectsInView.values.exists(Zugar == _)
-  val canSeeToxifera: Boolean = objectsInView.values.exists(Toxifera == _)
-  val nearestObject: Option[GameObject] = objectsInView.toList.filter(_._2.isInstanceOf[GameObject])
-    .sortWith(_._1 < _._1).drop(1).headOption.map {
-    case (_, gameObject: GameObject) => gameObject
+    objectsInView.toList.collect(conversionMethod).sortWith(_._1 < _._1).find(_._2 != MasterBot)
   }
 
   def canSee(position: RelativePosition): Boolean = objectAt(position).nonEmpty
   def objectAt(position: RelativePosition): Option[ViewObject] = objectsInView.get(position)
-  def spaceHas[T <: GameObject](position: RelativePosition): Option[Boolean] = objectAt(position).map(_.isInstanceOf[T])
 
   override def canEqual(other: Any): Boolean = other.isInstanceOf[View]
 
@@ -46,7 +49,7 @@ object View {
       case ((rowView: String, row: Int), outerAcc: Map[RelativePosition, ViewObject]) =>
         rowView.zipWithIndex.foldRight(outerAcc) {
           case ((cell: Char, column: Int), innerAcc: Map[RelativePosition, ViewObject]) =>
-            val position = RelativePosition(column - viewDistance, row - viewDistance)
+            val position = RelativePosition((column - viewDistance).right, (row - viewDistance).down)
             cell match {
               case '_' => innerAcc + (position -> ViewObject.Empty)
               case 'W' => innerAcc + (position -> Wall)
@@ -58,13 +61,11 @@ object View {
               case 'p' => innerAcc + (position -> Toxifera)
               case 'B' => innerAcc + (position -> Fluppet)
               case 'b' => innerAcc + (position -> Snorg)
+              case _ => innerAcc
             }
         }
     }
 
-    new View {
-      val distance = viewDistance
-      val objectsInView = viewObjects
-    }
+    new View(viewDistance,viewObjects)
   }
 }
