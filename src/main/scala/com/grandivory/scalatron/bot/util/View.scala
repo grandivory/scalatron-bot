@@ -22,6 +22,9 @@ class View private(val distance: Int, val objectsInView: Map[RelativePosition, V
 
   def canSee(position: RelativePosition): Boolean = objectAt(position).nonEmpty
   def objectAt(position: RelativePosition): Option[ViewObject] = objectsInView.get(position)
+  def nearest(p: ViewObject => Boolean): Option[RelativePosition] = {
+    objectsInView.toList.sortBy(_._1).find(positionObjectPair => p(positionObjectPair._2)).map(_._1)
+  }
 
   override def canEqual(other: Any): Boolean = other.isInstanceOf[View]
 
