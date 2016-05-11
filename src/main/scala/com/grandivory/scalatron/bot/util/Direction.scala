@@ -3,6 +3,8 @@ package com.grandivory.scalatron.bot.util
 import PositionVectorConversions._
 import RelativePositionConversions._
 
+import scala.util.Random
+
 sealed trait Direction extends Product with Serializable {
   import Direction._
 
@@ -119,4 +121,8 @@ object Direction {
     Left,
     UpLeft
   )
+
+  def randomDirection: Direction = {
+    allPossibleDirections.toList(Random.nextInt(allPossibleDirections.size))
+  }
 }

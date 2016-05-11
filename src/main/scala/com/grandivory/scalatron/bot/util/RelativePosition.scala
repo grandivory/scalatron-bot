@@ -16,9 +16,9 @@ case class RelativePosition(x: LeftRight = 0.left, y: UpDown = 0.up) extends Ord
 
   def direction: Option[Direction] = (x, y) match {
     case (LeftRight(0), UpDown(ud)) if ud < 0 => Some(Direction.Up)
-    case (LeftRight(0), UpDown(ud)) => Some(Direction.Down)
+    case (LeftRight(0), UpDown(ud)) if ud > 0 => Some(Direction.Down)
     case (LeftRight(lr), UpDown(0)) if lr < 0 => Some(Direction.Left)
-    case (LeftRight(lr), UpDown(0)) => Some(Direction.Right)
+    case (LeftRight(lr), UpDown(0)) if lr > 0 => Some(Direction.Right)
     case (LeftRight(lr), UpDown(ud)) if lr < 0 && ud < 0 => Some(Direction.UpLeft)
     case (LeftRight(lr), UpDown(ud)) if lr < 0 && ud > 0 => Some(Direction.DownLeft)
     case (LeftRight(lr), UpDown(ud)) if lr > 0 && ud < 0 => Some(Direction.UpRight)
@@ -37,6 +37,9 @@ case class RelativePosition(x: LeftRight = 0.left, y: UpDown = 0.up) extends Ord
     case UpLeft => RelativePosition(x - 1, y - 1)
   }
 
+  def +(that: RelativePosition): RelativePosition = RelativePosition(x + that.x, y + that.y)
+  def -(that: RelativePosition): RelativePosition = RelativePosition(x - that.x, y - that.y)
+
   override def compare(that: RelativePosition): Int = {
     if (distance < that.distance) -1
     else if (distance > that.distance) 1
@@ -46,4 +49,4 @@ case class RelativePosition(x: LeftRight = 0.left, y: UpDown = 0.up) extends Ord
   override def toString: String = s"$x:$y"
 }
 
-object Origin extends RelativePosition(0.left, 0.up)
+object Origin extends RelativePosition(LeftRight(0), UpDown(0))

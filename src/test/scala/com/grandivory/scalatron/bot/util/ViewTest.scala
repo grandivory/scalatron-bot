@@ -5,7 +5,7 @@ import RelativePositionConversions._
 import ViewObject.Empty
 import org.scalatest.{FunSpec, PrivateMethodTester}
 
-class ViewTest extends FunSpec with PrivateMethodTester {
+class ViewTest extends FunSpec {
   trait ViewTester {
     val testView = View("PbbBM____")
   }

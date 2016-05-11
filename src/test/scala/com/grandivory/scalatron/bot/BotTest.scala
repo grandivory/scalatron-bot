@@ -1,12 +1,16 @@
 package com.grandivory.scalatron.bot
 
+import java.time.{Duration, Instant}
+
 import com.grandivory.scalatron.bot.commands._
-import com.grandivory.scalatron.bot.util.{Direction, View}
+import com.grandivory.scalatron.bot.util.{Direction, Origin, RelativePosition, View}
+import util.RelativePositionConversions._
+import util.PositionVectorConversions._
 import org.scalacheck.{Arbitrary, Gen}
-import org.scalatest.FunSpec
+import org.scalatest.{FunSpec, PrivateMethodTester}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
-class BotTest extends FunSpec with GeneratorDrivenPropertyChecks {
+class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMethodTester {
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration =
     PropertyCheckConfiguration(minSuccessful = 10000)
@@ -228,5 +232,83 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks {
         }
       }
     }
+
+    it("should be able to run 1000 iterations in under 2 seconds") {
+      val startTime: Instant = Instant.now
+
+      for (
+        i <- 1 to 1000
+      ) {
+        Bot.performAction(genReact().sample)
+      }
+
+      val endTime: Instant = Instant.now
+
+
+      assert(Duration.between(startTime, endTime).toMillis < 2000)
+    }
   }
+
+  describe("shortestPathTo") {
+    val privateMethod = PrivateMethod[Option[List[Direction]]]('shortestPathTo)
+    def shortestPathTo(position: RelativePosition, view: View): Option[List[Direction]] =
+      Bot invokePrivate privateMethod(position, view)
+
+    it("should find no path if the bot is surrounded by obstacles") {
+      val view = View("______WbW__WMb__pWW______")
+      assertResult(None)(shortestPathTo((2.up, 2.right), view))
+    }
+
+    it("should find no path if the target is surrounded by obstacles") {
+      val view = View("____Wbp____s_m____pWW___M________________________")
+      assertResult(None)(shortestPathTo((2.up, 2.right), view))
+    }
+
+    it("should find no path if the target is surrounded by obstacles and unknowns") {
+      val view = View("____W??____s_?____pmW___M________________________")
+      assertResult(None)(shortestPathTo((2.up, 2.right), view))
+    }
+
+    it("should find no path if the target isn't visible") {
+      val view = View("____M____")
+      assertResult(None)(shortestPathTo((2.up, 2.right), view))
+    }
+
+    it("should return a path of 0 length if the target is not to move") {
+      val view = View("____M____")
+      assertResult(Some(Nil))(shortestPathTo(Origin, view))
+    }
+
+    it("should find a path if one exists") {
+      val view = View("______Wbp__sMm__W_W______")
+      assertResult(Some(7))(shortestPathTo(2.up, view).map(_.length))
+    }
+  }
+
+  describe("nearestSafeCell") {
+    val privateMethod = PrivateMethod[Option[RelativePosition]]('nearestSafeCell)
+    def nearestSafeCell(target: RelativePosition, view: View): Option[RelativePosition] =
+      Bot invokePrivate privateMethod(target, view)
+
+    it("should find no cell if none are safe") {
+      val view = View("bpsmWbbppsmm?bbWWWbsppsbm")
+      assertResult(None)(nearestSafeCell((2.left, 2.up), view))
+    }
+
+    it("should return the target cell if it is safe") {
+      val view = View("____________M____________")
+      assertResult(Some(RelativePosition(2.right, 2.up)))(nearestSafeCell((2.right, 2.up), view))
+    }
+
+    it("should return an adjacent cell if one is safe") {
+      val view = View("____b__WWp__MWs__BPpsbSBP")
+      assertResult(Some(RelativePosition(1.right, 2.up)))(nearestSafeCell((2.right, 2.up), view))
+    }
+
+    it("should be able to return a cell more than one square away") {
+      val view = View("_bbbbbbpppppppmm_mmmmsss?ssspppppppbbbbbbbWWWWWWW")
+      assertResult(Some(RelativePosition(1.left, 1.up)))(nearestSafeCell((3.right, 3.down), view))
+    }
+  }
+
 }
