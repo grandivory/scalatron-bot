@@ -5,7 +5,10 @@ import PositionVectorConversions._
 /**
   * A representation of everything that a bot can see
   */
-class View private(val distance: Int, val objectsInView: Map[RelativePosition, ViewObject]) extends Equals {
+class View private(val distance: Int,
+                   val objectsInView: Map[RelativePosition, ViewObject],
+                   private val viewString: String
+                  ) extends Equals {
   def canSeeSnorgs: Boolean = objectsInView.values.exists(Snorg == _)
   def canSeeFluppets: Boolean = objectsInView.values.exists(Fluppet == _)
   def canSeeZugars: Boolean = objectsInView.values.exists(Zugar == _)
@@ -35,7 +38,7 @@ class View private(val distance: Int, val objectsInView: Map[RelativePosition, V
     case _ => false
   }
 
-  override def toString: String = s"View@$hashCode"
+  override def toString: String = s"View($viewString)"
 }
 
 object View {
@@ -71,6 +74,6 @@ object View {
         }
     }
 
-    new View(viewDistance,viewObjects)
+    new View(viewDistance,viewObjects, viewString)
   }
 }

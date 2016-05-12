@@ -10,15 +10,35 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.{FunSpec, PrivateMethodTester}
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.util.{Failure, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMethodTester {
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration =
     PropertyCheckConfiguration(minSuccessful = 10000)
 
+  val genViewCell: Gen[Char] = Gen.frequency(
+    (1, 'b'),
+    (1, 'B'),
+    (1, 'p'),
+    (1, 'P'),
+    (1, 'M'),
+    (1, 'm'),
+    (1, 's'),
+    (1, 'S'),
+    (20, '_'),
+    (3, 'W'),
+    (1, '?')
+  )
+
   val genView: Gen[View] = for {
-    sideLength <- Gen.choose(1, 10)
+    sidelength <- Gen.choose(16, 16)
+    viewCells <- Gen.listOfN(sidelength * sidelength, genViewCell)
   } yield {
-    View("_"*sideLength*sideLength)
+    View(viewCells.mkString)
   }
 
   val genDirection: Gen[Direction] = Gen.oneOf(
@@ -234,18 +254,24 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
     }
 
     it("should be able to run 1000 iterations in under 2 seconds") {
-      val startTime: Instant = Instant.now
+      val overallStartTime: Instant = Instant.now
 
       for (
         i <- 1 to 1000
       ) {
-        Bot.performAction(genReact().sample)
+        val input = genReact().sample
+        Try {
+          Await.result(Future{Bot.performAction(input)}, 100.millis)
+        } match {
+          case Failure(exc) => fail(s"Bot was slow on input: $input")
+          case _ => ()
+        }
       }
 
       val endTime: Instant = Instant.now
 
 
-      assert(Duration.between(startTime, endTime).toMillis < 2000)
+      assert(Duration.between(overallStartTime, endTime).toMillis < 2000)
     }
   }
 
