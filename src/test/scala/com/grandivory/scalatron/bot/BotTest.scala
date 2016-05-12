@@ -35,7 +35,8 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
   )
 
   val genView: Gen[View] = for {
-    sidelength <- Gen.choose(16, 16)
+    viewDistance <- Gen.choose(0, 10)
+    sidelength = 11 + viewDistance * 2
     viewCells <- Gen.listOfN(sidelength * sidelength, genViewCell)
   } yield {
     View(viewCells.mkString)

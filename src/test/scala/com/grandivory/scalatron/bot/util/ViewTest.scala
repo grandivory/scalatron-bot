@@ -147,4 +147,20 @@ class ViewTest extends FunSpec {
       assertResult(Some(Empty))(bigView.objectAt((2.down, 2.right)))
     }
   }
+
+  describe("nearest") {
+    it("should return the nearest object that matches a predicate") {
+      val tinyView = View("b___M____")
+      val biggerView = View("pp__WmmssS__M_BppPWWBPPbs")
+
+      assertResult(Some(RelativePosition(1.left, 1.up)))(tinyView.nearest(Snorg == _))
+      assertResult(Some(RelativePosition(1.left, 1.up)))(biggerView.nearest(EnemyBot == _))
+    }
+
+    it("should return none if the predicate is not met") {
+      val view = View("pp__WmmssS__M_BppPWWBPPBs")
+
+      assertResult(None)(view.nearest(Snorg == _))
+    }
+  }
 }
