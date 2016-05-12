@@ -337,5 +337,4 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
       assertResult(Some(RelativePosition(1.left, 1.up)))(nearestSafeCell((3.right, 3.down), view))
     }
   }
-
 }
