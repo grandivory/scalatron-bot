@@ -10,8 +10,13 @@ class ControlFunctionFactory {
     // Parse the input string into a ControlOpCode
     // Pass the ControlOpCode to the real bot
     // Serialize the resulting BotCommand back to a string
-    parseControlCode _ andThen Bot.performAction andThen serializeBotAction
+    parseControlCode _ andThen Bot.performAction andThen serializeBotAction andThen printAndReturn
 
+
+  private def printAndReturn(s: String): String = {
+    println("Shiva: " + s)
+    s
+  }
   /**
     * Given a string input, parse out a full ControlOpCode representation of that input
     *
