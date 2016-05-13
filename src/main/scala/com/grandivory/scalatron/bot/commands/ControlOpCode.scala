@@ -1,6 +1,6 @@
 package com.grandivory.scalatron.bot.commands
 
-import com.grandivory.scalatron.bot.util.{Direction, View}
+import com.grandivory.scalatron.bot.util.{Direction, RelativePosition, View}
 
 /**
   * This is a control code that will be sent to the bot when it needs to do something
@@ -35,7 +35,7 @@ case class Goodbye(energy: Int) extends ControlOpCode
   * @param currentRound The current round of the simulation
   * @param view Everything that the bot can currently see
   * @param currentEnergy The amount of energy the bot currently has
-  * @param masterDirection For slaves, the direction of their master
+  * @param masterPosition For slaves, the relative position of their master
   * @param failedMoveDirection If a previous move failed, this is the direction of the move attempt
   * @param numLivingSlaves The number of slave bots that are currently alive
   * @param extraProperties Any extra properties that were set on the bot at creation time,
@@ -46,7 +46,7 @@ case class React(generation: Int,
                  currentRound: Int,
                  view: View,
                  currentEnergy: Int,
-                 masterDirection: Option[Direction] = None,
+                 masterPosition: Option[RelativePosition] = None,
                  failedMoveDirection: Option[Direction] = None,
                  numLivingSlaves: Int,
                  extraProperties: Option[Map[String, String]] = None)

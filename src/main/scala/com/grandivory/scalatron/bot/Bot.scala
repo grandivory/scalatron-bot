@@ -144,4 +144,13 @@ object Bot {
       }
     }
   }
+
+  private def andAlso(left: Option[BotCommand], right: Option[BotCommand]): Option[BotCommand] = {
+    (left, right) match {
+      case (Some(l), Some(r)) => Some(l + r)
+      case (Some(l), None) => left
+      case (None, Some(r)) => right
+      case (None, None) => None
+    }
+  }
 }

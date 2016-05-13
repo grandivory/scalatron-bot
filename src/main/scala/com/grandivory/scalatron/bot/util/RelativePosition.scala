@@ -51,4 +51,12 @@ case class RelativePosition(x: LeftRight = 0.left, y: UpDown = 0.up) extends Ord
   override def toString: String = s"$x:$y"
 }
 
+object RelativePosition {
+  def parse(input: String) = {
+    val (x: String, y: String) = input.splitAt(input.indexOf(':'))
+
+    RelativePosition(x.toInt.right, y.drop(1).toInt.down)
+  }
+}
+
 object Origin extends RelativePosition(LeftRight(0), UpDown(0))

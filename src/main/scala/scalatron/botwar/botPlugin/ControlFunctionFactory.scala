@@ -2,7 +2,7 @@ package scalatron.botwar.botPlugin
 
 import com.grandivory.scalatron.bot.Bot
 import com.grandivory.scalatron.bot.commands._
-import com.grandivory.scalatron.bot.util.{Direction, View}
+import com.grandivory.scalatron.bot.util.{Direction, RelativePosition, View}
 
 class ControlFunctionFactory {
 
@@ -67,7 +67,7 @@ class ControlFunctionFactory {
             currentRound = currentRound.toInt,
             view = View(view),
             currentEnergy = currentEnergy.toInt,
-            masterDirection = arguments.get("master").map(Direction.parse),
+            masterPosition = arguments.get("master").map(RelativePosition.parse),
             failedMoveDirection = arguments.get("collision").map(Direction.parse),
             numLivingSlaves = numLivingSlaves.toInt,
             extraProperties = extraProperties

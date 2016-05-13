@@ -55,7 +55,7 @@ class ControlFunctionFactoryTest extends FunSpec with PrivateMethodTester {
           currentRound = 4,
           view = View("M"),
           currentEnergy = 100,
-          masterDirection = Some(DownRight),
+          masterPosition = Some(RelativePosition(1.right, 1.down)),
           failedMoveDirection = Some(DownRight),
           numLivingSlaves = 2,
           extraProperties = Some(Map("foo" -> "bar"))

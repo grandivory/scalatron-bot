@@ -53,6 +53,13 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
     Direction.UpLeft
   )
 
+  val genPosition: Gen[RelativePosition] = for {
+    x <- Gen.choose(-15, 15)
+    y <- Gen.choose(-15, 15)
+  } yield {
+    RelativePosition(x.right, y.down)
+  }
+
   val genPropertyMap = for {
     size <- Gen.choose(0, 5)
     keys <- Gen.listOfN(size, Gen.alphaStr)
@@ -77,7 +84,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
     currentRound <- Gen.choose(1, 10000)
     view <- genView
     currentEnergy <- Gen.choose(0, maxEnergy)
-    masterDirection <- Gen.option(genDirection)
+    masterPosition <- Gen.option(genPosition)
     failedMoveDirection <- Gen.option(genDirection)
     numLivingSlaves <- Gen.choose(0, 10)
     extraProperties <- Gen.option(genPropertyMap)
@@ -88,7 +95,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
       currentRound,
       view,
       currentEnergy,
-      masterDirection,
+      masterPosition,
       failedMoveDirection,
       numLivingSlaves,
       extraProperties
