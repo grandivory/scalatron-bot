@@ -42,6 +42,8 @@ case class RelativePosition(x: LeftRight = 0.left, y: UpDown = 0.up) extends Ord
   def +(that: RelativePosition): RelativePosition = RelativePosition(x + that.x, y + that.y)
   def -(that: RelativePosition): RelativePosition = RelativePosition(x - that.x, y - that.y)
 
+  def *(weight: Float): WeightedVector = WeightedVector(x.coordinate * weight, y.coordinate * weight)
+
   override def compare(that: RelativePosition): Int = {
     if (distance < that.distance) -1
     else if (distance > that.distance) 1

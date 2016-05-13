@@ -15,7 +15,8 @@ object Bot {
 
   val MAX_WORKER_SLAVES = 6
   val MAX_SLAVES = 10
-  val MAX_ENERGY = 2000
+  val MAX_SLAVE_ENERGY = 2000
+  val MAX_SLAVE_ROUND = 4900
 
   /**
     * This is the main function that is called each round that your bot can take an action. Your bot is given an
@@ -29,7 +30,7 @@ object Bot {
       currentRound,
       view,
       currentEnergy,
-      masterDirection,
+      masterPosition,
       failedMoveDirection,
       numLivingSlaves,
       extraProps)) =>
@@ -38,98 +39,60 @@ object Bot {
       else for {
         slaveProperties: Map[String, String] <- extraProps
         role: String <- slaveProperties.get(ROLE)
-        home: Direction <- masterDirection
+        home: RelativePosition <- masterPosition
         command: BotCommand <- actAsSlave(currentRound, view, currentEnergy, home, role)
       } yield {
         command + Log(role)
       }
 
-      /***************
-        * Strategies *
-        **************/
-//      val pathToFood: BotStrategy = () => for {
-//        nearestFood <- nearestFoodOp
-//        shortestPath <- shortestPathTo(nearestFood, view)
-//        firstMove <- shortestPath.headOption
-//      } yield {
-//        Move(firstMove) + Status("FOOD!")
-//      }
-//
-//      val moveTowardFood: BotStrategy = () => for {
-//        nearestFood <- nearestFoodOp
-//        foodDirection <- nearestFood.direction
-//        moveDirection <- closestDirectionTo(foodDirection, view)
-//      } yield {
-//        Move(moveDirection) + Status("food?")
-//      }
-//
-//      val runFromEnemy: BotStrategy = () => for {
-//        nearestEnemy <- view.nearest(obj => Snorg == obj || EnemySlave == obj || EnemyBot == obj)
-//        enemyDirection <- nearestEnemy.direction
-//        runDirection <- closestDirectionTo(enemyDirection.reverse, view)
-//      } yield {
-//        Move(runDirection) + Status("Run Away!")
-//      }
-//
-//      val stumped: BotStrategy = () => {
-//        val randomDir = Direction.randomDirection
-//        for {
-//          moveDirection <- closestDirectionTo(randomDir, view)
-//        } yield {
-//          Move(moveDirection) + Status("???")
-//        }
-//      }
-//
-//      val missile: BotStrategy = () => {
-//        None
-//      }
-
-//      pathToFood() orElse moveTowardFood() orElse runFromEnemy() orElse stumped()
     case None =>
       Some(Say("?!?!?!?!?") + Move(Direction.Up))
-    case Some(command@Welcome(_, _, _, _)) => println(command); None
-    case Some(command@Goodbye(_)) => println(command); None
     case _ => None
   }
 
   private def actAsMaster(round: Int, view: View, energy: Int, numSlaves: Int): Option[BotCommand] = {
     val spawnWorker: BotStrategy = () =>
-      if (energy > 100 && numSlaves < MAX_WORKER_SLAVES)
+      if (energy > 100 && numSlaves < MAX_WORKER_SLAVES && round < MAX_SLAVE_ROUND)
         Some(Spawn(Direction.randomDirection, None, 100, Some(Map(ROLE -> ROLE_GATHERER))))
       else
         None
 
-    val spawnMissile: BotStrategy = () => for {
-      enemy <- view.nearest(obj => EnemyBot == obj || EnemySlave == obj) if energy > 100 && numSlaves < MAX_SLAVES
-      enemyDirection <- enemy.direction
-      spawnDirection <- closestDirectionTo(enemyDirection, view)
-    } yield {
-      Spawn(spawnDirection, None, 100, Some(Map(ROLE -> ROLE_MISSILE)))
-    }
+    val spawnMissile: BotStrategy = () =>
+      if (energy > 100 && numSlaves < MAX_SLAVES && round < MAX_SLAVE_ROUND) for {
+          enemy <- view.nearest(obj => EnemyBot == obj || EnemySlave == obj)
+          enemyDirection <- enemy.direction
+          spawnDirection <- closestDirectionTo(enemyDirection, view)
+        } yield {
+          Spawn(spawnDirection, None, 100, Some(Map(ROLE -> ROLE_MISSILE)))
+        }
+      else None
 
-    val spawnChaff: BotStrategy = () => for {
-      enemyMissile <- view.nearest(EnemySlave == _) if enemyMissile.distance <= 3 && energy > 100 && numSlaves < MAX_SLAVES
-      missileDirection <- enemyMissile.direction
-      spawnDirection <- closestDirectionTo(missileDirection, view)
-    } yield {
-      Spawn(spawnDirection, None, 100, Some(Map(ROLE -> ROLE_CHAFF)))
-    }
+    val spawnChaff: BotStrategy = () =>
+      if (energy > 100 && numSlaves < MAX_SLAVES && round < MAX_SLAVE_ROUND) for {
+          enemyMissile <- view.nearest(EnemySlave == _)
+          missileDirection <- enemyMissile.direction
+          spawnDirection <- closestDirectionTo(missileDirection, view)
+        } yield {
+          Spawn(spawnDirection, None, 100, Some(Map(ROLE -> ROLE_CHAFF)))
+        }
+      else None
 
     andAlso(spawnChaff() orElse spawnMissile() orElse spawnWorker(), gather(view))
   }
 
-  private def actAsSlave(round: Int, view: View, energy: Int, masterDirection: Direction, role: String):
+  private def actAsSlave(round: Int, view: View, energy: Int, masterPosition: RelativePosition, role: String):
   Option[BotCommand] = {
-    val returnHome: BotStrategy = () => for {
-      moveDirection <- closestDirectionTo(masterDirection, view)
-    } yield {
-      Move(moveDirection) + Status("HOME")
-    }
-
-    println("Slave bot!")
+    val returnHome: BotStrategy = () =>
+      if (energy > MAX_SLAVE_ENERGY || round > MAX_SLAVE_ROUND) for {
+          masterDirection <- masterPosition.direction
+          moveDirection <- closestDirectionTo(masterDirection, view)
+        } yield {
+          Move(moveDirection) + Status("HOME")
+        }
+      else None
 
     role match {
-      case ROLE_GATHERER => Some(Status("FARMER"))
+      case ROLE_GATHERER => returnHome() orElse gather(view)
       case ROLE_MISSILE => Some(Status("PEW PEW!!"))
       case ROLE_CHAFF => Some(Status("AEGIS"))
       case _ => None
