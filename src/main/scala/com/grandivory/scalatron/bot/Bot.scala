@@ -13,9 +13,9 @@ object Bot {
   val ROLE_MISSILE = "missile"
   val ROLE_CHAFF = "chaff"
 
-  val MAX_WORKER_SLAVES = 6
+  val MAX_WORKER_SLAVES = 8
   val MAX_SLAVES = 10
-  val MAX_SLAVE_ENERGY = 2000
+  val MAX_SLAVE_ENERGY = 5000
   val MAX_SLAVE_ROUND = 4900
 
   type BotStrategy = () => Option[BotCommand]
