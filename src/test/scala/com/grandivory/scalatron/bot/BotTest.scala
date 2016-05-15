@@ -12,8 +12,9 @@ import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scalatron.botwar.botPlugin.ControlCodeParseException
 
 class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMethodTester {
 
@@ -72,7 +73,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
     name <- Gen.identifier
     numRounds <- Gen.choose(1000, 50000)
     currentRound <- Gen.choose(1, numRounds)
-    maxSlaves <- Gen.choose(1, 100)
+    maxSlaves <- Gen.option(Gen.choose(1, 100))
   } yield {
     Welcome(name, numRounds, currentRound, maxSlaves)
   }
@@ -114,8 +115,11 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
     (80, genReact())
   )
 
-  implicit val controlOpCodeOptionGenerator: Arbitrary[Option[ControlOpCode]] = Arbitrary {
-    Gen.option(controlOpCodeGenerator)
+  implicit val controlOpCodeResultGenerator: Arbitrary[Either[ControlCodeParseException, ControlOpCode]] = Arbitrary {
+    Gen.option(controlOpCodeGenerator) map {
+      case Some(controlOpCode) => Right(controlOpCode)
+      case None => Left(new ControlCodeParseException("foo", ""))
+    }
   }
 
   describe("performAction") {
@@ -132,7 +136,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
         case _ => false
       }
 
-      forAll ("ControlOpCode") { opCode: Option[ControlOpCode] =>
+      forAll ("ControlOpCode") { opCode: Either[ControlCodeParseException, ControlOpCode] =>
         Bot.performAction(opCode) match {
           case Some(action: BotCommand) => assert(!hasSameActionMultipleTimes(action))
           case _ => succeed
@@ -159,7 +163,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
         }
       }
 
-      forAll ("ControlOpCode") { opCode: Option[ControlOpCode] =>
+      forAll ("ControlOpCode") { opCode: Either[ControlCodeParseException, ControlOpCode] =>
         Bot.performAction(opCode) match {
           case Some(botCommand: BotCommand) => assert(!hasInvalidCharacters(botCommand))
           case None => succeed
@@ -188,7 +192,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
         }
       }
 
-      forAll ("controlOpCode") { controlOpCode: Option[ControlOpCode] =>
+      forAll ("controlOpCode") { controlOpCode: Either[ControlCodeParseException, ControlOpCode] =>
         Bot.performAction(controlOpCode) match {
           case Some(botAction: BotCommand) => assert(!hasInvalidProperties(botAction))
           case _ => succeed
@@ -199,7 +203,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
     it("should not try to explode the master bot") {
       forAll ((genReact(0), "controlOpCode")) { controlOpCode: React =>
         whenever(controlOpCode.generation == 0) {
-          Bot.performAction(Some(controlOpCode)) match {
+          Bot.performAction(Right(controlOpCode)) match {
             case Some(_: Explode) => fail("Master bot tried to explode")
             case Some(MultiCommand(commands)) => assert(!commands.exists(_.isInstanceOf[Explode]))
             case _ => succeed
@@ -211,7 +215,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
     it("should not try to spawn a slave bot if it doesn't have enough energy") {
       forAll ((genReact(maxEnergy = 99), "controlOpCode")) { controlOpCode: React =>
         whenever(controlOpCode.currentEnergy < 100) {
-          Bot.performAction(Some(controlOpCode)) match {
+          Bot.performAction(Right(controlOpCode)) match {
             case Some(_: Spawn) => fail("Tried to spawn a slave bot without enough energy")
             case Some(MultiCommand(commands)) => assert(!commands.exists(_.isInstanceOf[Spawn]))
             case _ => succeed
@@ -228,7 +232,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
       }
 
       forAll ((genReact(), "controlOpCode")) { controlOpCode: React =>
-        Bot.performAction(Some(controlOpCode)) match {
+        Bot.performAction(Right(controlOpCode)) match {
           case Some(botAction: BotCommand) => assert(!spawnedChildWithExtraEnergy(botAction)(controlOpCode.currentEnergy))
           case _ => succeed
         }
@@ -237,7 +241,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
 
     it("should never explode in only its own square") {
       forAll ((genReact(10), "controlOpCode")) { controlOpCode: React =>
-        Bot.performAction(Some(controlOpCode)) match {
+        Bot.performAction(Right(controlOpCode)) match {
           case Some(Explode(x)) if x < 2 => fail("Tried to explode without damaging anything")
           case Some(MultiCommand(commands)) => assert(!commands.exists{
             case Explode(x) if x < 2 => true
@@ -250,7 +254,7 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
 
     it("should never try to explode over too large an area") {
       forAll ((genReact(10), "controlOpCode")) { controlOpCode: React =>
-        Bot.performAction(Some(controlOpCode)) match {
+        Bot.performAction(Right(controlOpCode)) match {
           case Some(Explode(x)) if x > 10 => fail("Tried to explode over too large an area")
           case Some(MultiCommand(commands)) => assert(!commands.exists{
             case Explode(x) if x > 10 => true
@@ -267,7 +271,10 @@ class BotTest extends FunSpec with GeneratorDrivenPropertyChecks with PrivateMet
       for (
         i <- 1 to 1000
       ) {
-        val input = genReact().sample
+        val input = genReact().sample match {
+          case Some(react) => Right(react)
+          case None => Left(new ControlCodeParseException("foo", ""))
+        }
         Try {
           Await.result(Future{Bot.performAction(input)}, 100.millis)
         } match {
