@@ -1,7 +1,9 @@
 package com.grandivory.scalatron.bot.util
 
-import PositionVectorConversions._
 import com.grandivory.scalatron.bot.util.Direction._
+import com.grandivory.scalatron.bot.util.PositionVectorConversions._
+
+import scala.util.Try
 
 /**
   * Represents a cell position relative to the bot
@@ -54,7 +56,7 @@ case class RelativePosition(x: LeftRight = 0.left, y: UpDown = 0.up) extends Ord
 }
 
 object RelativePosition {
-  def parse(input: String) = {
+  def parse(input: String): Try[RelativePosition] = Try {
     val (x: String, y: String) = input.splitAt(input.indexOf(':'))
 
     RelativePosition(x.toInt.right, y.drop(1).toInt.down)

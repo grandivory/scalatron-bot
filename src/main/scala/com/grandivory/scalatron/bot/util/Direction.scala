@@ -3,7 +3,7 @@ package com.grandivory.scalatron.bot.util
 import PositionVectorConversions._
 import RelativePositionConversions._
 
-import scala.util.Random
+import scala.util.{Random, Try}
 
 sealed trait Direction extends Product with Serializable {
   import Direction._
@@ -100,7 +100,16 @@ object Direction {
     UpLeft -> "-1:-1"
   )
 
-  def parse(input: String): Direction = directionStringMap.map(_.swap).apply(input)
+  def parse(input: String): Try[Direction] = Try {
+    val dirValues = input.split(':')
+
+    val directionString: String = dirValues.map(_.toInt).map { dirValue: Int =>
+      if (Math.abs(dirValue) > 1) -1 * Math.signum(dirValue).toInt
+      else dirValue
+    }.take(2).mkString(":")
+
+    directionStringMap.map(_.swap).apply(directionString)
+  }
 
   case object Up extends Direction
   case object UpRight extends Direction

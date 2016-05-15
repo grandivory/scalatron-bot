@@ -16,7 +16,10 @@ sealed trait ControlOpCode extends Product with Serializable
   * @param currentRound The number of the current round
   * @param maxSlaves The total number of slaves that bots are allowed to have
   */
-case class Welcome(name: String, numSimulationRounds: Int, currentRound: Int, maxSlaves: Int) extends ControlOpCode
+case class Welcome(name: String,
+                   numSimulationRounds: Int,
+                   currentRound: Int,
+                   maxSlaves: Option[Int]) extends ControlOpCode
 
 /**
   * Code sent when the simulation ends or the bot will be destroyed. If anything needs to be cleaned up from memory,

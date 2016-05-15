@@ -4,6 +4,8 @@ import com.grandivory.scalatron.bot.commands._
 import com.grandivory.scalatron.bot.util.ViewObject.Empty
 import com.grandivory.scalatron.bot.util._
 
+import scalatron.botwar.botPlugin.ControlCodeParseException
+
 object Bot {
 
   val ROLE = "role"
@@ -93,8 +95,8 @@ object Bot {
     * opcode that represents what it should react to, and it must issue a command to perform. The main bot can
     * only react every OTHER round, whereas slave bots can react every round
     */
-  def performAction(controlCode: Option[ControlOpCode]): Option[BotCommand] = controlCode match {
-    case Some(React(
+  def performAction(controlCode: Either[ControlCodeParseException, ControlOpCode]): Option[BotCommand] = controlCode match {
+    case Right(React(
       generation,
       botName,
       currentRound,
@@ -115,8 +117,17 @@ object Bot {
         command + Log(role)
       }
 
-    case None =>
-      Some(Say("?!?!?!?!?") + Move(Direction.Up))
+    case Left(exc: ControlCodeParseException) =>
+      println
+      println
+      println
+      println
+      println
+      println
+      exc.printStackTrace()
+      println(s"with message: ${exc.getMessage}")
+      println(s"for input: ${exc.input}")
+      Some(Say("?!?!?!?!?"))
     case _ => None
   }
 
